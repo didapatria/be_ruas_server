@@ -65,9 +65,39 @@ def get_category_name(label):
     else:
         return "-"
 
+class count_deteksi:
+    count = 0
+    highest = 0
+
+countTengok = count_deteksi()
+countLihatAtas = count_deteksi()
+countDepanBelakang = count_deteksi()
+
+def countDetect(label, persentase):
+    if label == 0:
+        if countLihatAtas.highest < persentase:
+            countLihatAtas.highest = persentase
+            return countLihatAtas.highest
+        countLihatAtas.count += 1
+        return countLihatAtas.count
+    elif label == 1:
+        if countDepanBelakang.highest < persentase:
+            countDepanBelakang.highest = persentase
+            return countDepanBelakang.highest
+        countDepanBelakang.count += 1
+        return countDepanBelakang.count
+    elif label == 2:
+        if countTengok.highest < persentase:
+            countTengok.highest = persentase
+            return countTengok.highest
+        countTengok.count += 1
+        return countTengok.count
+
+tengokKiriKanan = 0
 
 @app.route("/process-video", methods=["POST"])
 def process_video():
+    global tengokKiriKanan
     try:
         # Menerima video streaming dari permintaan
         video = request.files["video"]
@@ -91,6 +121,15 @@ def process_video():
             face["category"] = get_category_name(
                 face["label"]
             )  # Dapatkan nama kategori berdasarkan label
+            countDetect(face["label"], face["classification_percentage"])
+            face["cheat"] = {
+                "tengok": countTengok.count,
+                "tengokPersen": countTengok.highest,
+                "atasBawah": countLihatAtas.count,
+                "atasBawahPersen": countLihatAtas.highest,
+                "depanBelakang": countDepanBelakang.count,
+                "depanBelakangPersen": countDepanBelakang.highest,
+            }
 
         # Gabungkan hasil koordinat dan kategori wajah
         results = []
@@ -99,6 +138,10 @@ def process_video():
                 "border_coordinates": face["border_coordinates"],
                 "classification_percentage": face["classification_percentage"],
                 "category": face["category"],
+                "count_cheat": face["cheat"],
+                # "detect_tengok": countTengok.count,
+                # "detect_atasbawah": countLihatAtas.count,
+                # "detect_depanbelakang": countDepanBelakang.count,
             }
             results.append(result)
 
