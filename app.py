@@ -2,7 +2,7 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 import cv2
 import numpy as np
-from tensorflow.python.keras.models import load_model
+from tensorflow.keras.models import load_model
 import os
 
 app = Flask(__name__)
@@ -12,7 +12,7 @@ face_cascade = cv2.CascadeClassifier(
     cv2.data.haarcascades + "haarcascade_frontalface_default.xml"
 )
 
-model_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "model.h5")
+model_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "model150.h5")
 
 if os.path.exists(model_path):
     model = load_model(model_path)  # Memuat model dari file H5
@@ -55,49 +55,66 @@ def classify_faces(frame):
 
 def get_category_name(label):
     if label == 0:
-        return "menyontek-lihat-atas-bawah"
+        return "0-normal"
     elif label == 1:
-        return "menyontek-tengok-depan-belakang"
+        return "1-tengok-kiri-kanan"
     elif label == 2:
-        return "menyontek-tengok-kiri-kanan"
+        return "2-tengok-depan-belakang"
     elif label == 3:
-        return "normal" 
+        return "3-lirik-kiri-kanan"
+    elif label == 4:
+        return "4-lihat-atas"
     else:
         return "-"
+
 
 class count_deteksi:
     count = 0
     highest = 0
 
+
+countNormal = count_deteksi()
 countTengok = count_deteksi()
-countLihatAtas = count_deteksi()
 countDepanBelakang = count_deteksi()
+countLirik = count_deteksi()
+countLihatAtas = count_deteksi()
+
 
 def countDetect(label, persentase):
     if label == 0:
-        if countLihatAtas.highest < persentase:
-            countLihatAtas.highest = persentase
-            return countLihatAtas.highest
-        countLihatAtas.count += 1
-        return countLihatAtas.count
+        if countNormal.highest < persentase:
+            countNormal.highest = persentase
+            return countNormal.highest
+        countNormal.count += 1
+        return countNormal.count
     elif label == 1:
-        if countDepanBelakang.highest < persentase:
-            countDepanBelakang.highest = persentase
-            return countDepanBelakang.highest
-        countDepanBelakang.count += 1
-        return countDepanBelakang.count
-    elif label == 2:
         if countTengok.highest < persentase:
             countTengok.highest = persentase
             return countTengok.highest
         countTengok.count += 1
         return countTengok.count
+    elif label == 2:
+        if countDepanBelakang.highest < persentase:
+            countDepanBelakang.highest = persentase
+            return countDepanBelakang.highest
+        countDepanBelakang.count += 1
+        return countDepanBelakang.count
+    elif label == 3:
+        if countLirik.highest < persentase:
+            countLirik.highest = persentase
+            return countLirik.highest
+        countLirik.count += 1
+        return countLirik.count
+    elif label == 4:
+        if countLihatAtas.highest < persentase:
+            countLihatAtas.highest = persentase
+            return countLihatAtas.highest
+        countLihatAtas.count += 1
+        return countLihatAtas.count
 
-tengokKiriKanan = 0
 
 @app.route("/process-video", methods=["POST"])
 def process_video():
-    global tengokKiriKanan
     try:
         # Menerima video streaming dari permintaan
         video = request.files["video"]
@@ -117,18 +134,24 @@ def process_video():
                 "x2": face["x"] + face["width"],
                 "y2": face["y"] + face["height"],
             }
-            face["classification_percentage"] = round( face["prediction"][face["label"]] * 100, 2) 
+            face["classification_percentage"] = round(
+                face["prediction"][face["label"]] * 100, 2
+            )
             face["category"] = get_category_name(
                 face["label"]
             )  # Dapatkan nama kategori berdasarkan label
             countDetect(face["label"], face["classification_percentage"])
             face["cheat"] = {
+                "normal": countNormal.count,
+                "normalPersen": countNormal.highest,
                 "tengok": countTengok.count,
                 "tengokPersen": countTengok.highest,
-                "atasBawah": countLihatAtas.count,
-                "atasBawahPersen": countLihatAtas.highest,
                 "depanBelakang": countDepanBelakang.count,
                 "depanBelakangPersen": countDepanBelakang.highest,
+                "lirik": countLirik.count,
+                "lirikPersen": countLirik.highest,
+                "atasBawah": countLihatAtas.count,
+                "atasBawahPersen": countLihatAtas.highest,
             }
 
         # Gabungkan hasil koordinat dan kategori wajah
@@ -139,9 +162,6 @@ def process_video():
                 "classification_percentage": face["classification_percentage"],
                 "category": face["category"],
                 "count_cheat": face["cheat"],
-                # "detect_tengok": countTengok.count,
-                # "detect_atasbawah": countLihatAtas.count,
-                # "detect_depanbelakang": countDepanBelakang.count,
             }
             results.append(result)
 
