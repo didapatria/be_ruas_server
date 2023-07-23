@@ -1,16 +1,14 @@
 import os
 
 # TensorFlow and tf.keras
-import tensorflow as tf
-
-from tensorflow.keras.applications.resnet50 import preprocess_input, decode_predictions
+from tensorflow.keras.models import load_model
 from tensorflow.keras.preprocessing import image
 
 # Helper libraries
 import numpy as np
 
 # load model
-model = tf.keras.models.load_model("model150.h5")
+model = load_model("model150.h5")
 
 # Mengatur ukuran batch dan dimensi gambar
 batch_size = 32
@@ -42,4 +40,4 @@ elif classes_x == 4:
     classes_value = "lihat-atas"
 
 
-print("Prediksi untuk gambar ini " + img_test + " : " + classes_value)
+print("Prediksi untuk gambar ini '" + img_test + "' : " + classes_value)
