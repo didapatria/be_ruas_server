@@ -16,7 +16,9 @@ face_cascade = cv2.CascadeClassifier(
     + "haarcascade_frontalface_alt2.xml"
 )
 
-model_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "model.h5")
+model_path = os.path.join(
+    os.path.dirname(os.path.abspath(__file__)), "./model/data-modeling.h5"
+)
 
 if os.path.exists(model_path):
     model = load_model(model_path)  # Memuat model dari file H5
@@ -43,13 +45,14 @@ def detect_faces(frame):
 
 def classify_faces(frame):
     face_coordinates = detect_faces(frame)
+    img_width, img_height = 224, 224
 
     for face in face_coordinates:
         x, y, w, h = face["x"], face["y"], face["width"], face["height"]
         face_img = frame[y : y + h, x : x + w]
         face_img = cv2.cvtColor(face_img, cv2.COLOR_BGR2RGB)
         face_img = cv2.resize(
-            face_img, (150, 150)
+            face_img, (img_width, img_height)
         )  # Ubah ukuran gambar menjadi 150x150
         face_img = img_to_array(face_img)
         face_img = np.expand_dims(face_img, axis=0)  # Tambahkan dimensi batch
@@ -172,6 +175,10 @@ def process_video():
     try:
         # Menerima video streaming dari permintaan
         video = request.files["video"]
+        x = request.form["x"]
+        y = request.form["y"]
+        print("x: ", x)
+        print("y: ", y)
 
         # Ubah video menjadi format yang dapat digunakan oleh OpenCV
         video_array = np.frombuffer(video.read(), dtype=np.uint8)

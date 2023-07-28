@@ -16,9 +16,9 @@ datagen = ImageDataGenerator(
     shear_range=0.2,
     zoom_range=0.2,
     horizontal_flip=True,
-    rotation_range=20,
-    width_shift_range=0.2,
-    height_shift_range=0.2,
+    # rotation_range=20,
+    # width_shift_range=0.2,
+    # height_shift_range=0.2,
     # validation_split=0.2,
     # zoom_range=0.15,
     # shear_range=0.15,
@@ -72,7 +72,7 @@ history = model.fit(
     validation_data=valid_generator,
     # validation_steps=valid_generator.samples // batch_size,
     # validation_freq=1,
-    epochs=100,
+    epochs=50,
 )
 
 # Check Loss & Accuracy
@@ -81,7 +81,7 @@ print("Test loss:", test_loss)
 print("Test accuracy:", test_acc)
 
 # Menyimpan model ke file H5
-model.save("model/data-modeling.h5")
+model.save("model/data-model.h5")
 
 # Show result on graph
 plt.subplot(1, 2, 1)  # row 1, col 2 index 1
