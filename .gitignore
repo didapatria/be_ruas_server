@@ -51,7 +51,12 @@ docs/_build/
 
 # Dataset
 data/
+data-model/
+data-modeling/
+data-modeling - Copy/
+data-valid/
 data150/
+dataset/
 dataset150/
 
 # Model

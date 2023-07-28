@@ -2,18 +2,14 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 import cv2
 import numpy as np
-from tensorflow.keras.preprocessing.image import img_to_array
 from tensorflow.keras.models import load_model
-from tensorflow.keras.applications.mobilenet_v2 import preprocess_input
 import os
 
 app = Flask(__name__)
 CORS(app, origins="*")  # Izinkan permintaan dari domain yang berbeda
 
 face_cascade = cv2.CascadeClassifier(
-    # cv2.data.haarcascades + "haarcascade_frontalface_default.xml"
-    cv2.data.haarcascades
-    + "haarcascade_frontalface_alt2.xml"
+    cv2.data.haarcascades + "haarcascade_frontalface_default.xml"
 )
 
 model_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "model.h5")
@@ -27,15 +23,10 @@ else:
 def detect_faces(frame):
     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
     faces = face_cascade.detectMultiScale(
-        gray,
-        scaleFactor=1.1,
-        minNeighbors=5,
-        minSize=(60, 60),
-        flags=cv2.CASCADE_SCALE_IMAGE,
+        gray, scaleFactor=1.1, minNeighbors=5, minSize=(30, 30)
     )
     face_coordinates = [
-        {"x": int(x), "y": int(y + 50), "width": int(w), "height": int(h)}
-        # {"x": int(x), "y": int(y), "width": int(w), "height": int(h)}
+        {"x": int(x), "y": int(y), "width": int(w), "height": int(h)}
         for (x, y, w, h) in faces
     ]
     return face_coordinates
@@ -47,21 +38,17 @@ def classify_faces(frame):
     for face in face_coordinates:
         x, y, w, h = face["x"], face["y"], face["width"], face["height"]
         face_img = frame[y : y + h, x : x + w]
-        face_img = cv2.cvtColor(face_img, cv2.COLOR_BGR2RGB)
         face_img = cv2.resize(
             face_img, (150, 150)
         )  # Ubah ukuran gambar menjadi 150x150
-        face_img = img_to_array(face_img)
         face_img = np.expand_dims(face_img, axis=0)  # Tambahkan dimensi batch
-        # face_img = preprocess_input(face_img)
         face_img = face_img / 255.0  # Normalisasi piksel
 
         # Klasifikasikan gambar wajah menggunakan model
-        # images = np.vstack([face_img])
         result = model.predict(face_img)
         label = np.argmax(result)
 
-        # print(label)
+        print(label)
         face["label"] = label
         face["prediction"] = result.tolist()[0]
 
@@ -99,7 +86,7 @@ class count_deteksi:
     highest = 0
 
 
-countNormal = count_deteksi()
+# countNormal = count_deteksi()
 # countTengok = count_deteksi()
 # countDepanBelakang = count_deteksi()
 # countLirik = count_deteksi()
@@ -159,12 +146,6 @@ def countDetect(label, persentase):
             return countTengokKiriKanan.highest
         countTengokKiriKanan.count += 1
         return countTengokKiriKanan.count
-    elif label == 3:
-        if countNormal.highest < persentase:
-            countNormal.highest = persentase
-            return countNormal.highest
-        countNormal.count += 1
-        return countNormal.count
 
 
 @app.route("/process-video", methods=["POST"])
@@ -196,8 +177,8 @@ def process_video():
             )  # Dapatkan nama kategori berdasarkan label
             countDetect(face["label"], face["classification_percentage"])
             face["cheat"] = {
-                "normal": countNormal.count,
-                "normalPersen": countNormal.highest,
+                # "normal": countNormal.count,
+                # "normalPersen": countNormal.highest,
                 # "tengok": countTengok.count,
                 # "tengokPersen": countTengok.highest,
                 # "depanBelakang": countDepanBelakang.count,
@@ -226,7 +207,7 @@ def process_video():
             results.append(result)
 
         # Kirim hasil deteksi wajah dan klasifikasi ke client React.js dalam format JSON
-        print(results)
+        # print(results)
         return jsonify({"faces": results})
     except Exception as e:
         return jsonify({"error": str(e)}), 500

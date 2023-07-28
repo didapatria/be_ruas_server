@@ -8,20 +8,20 @@ from tensorflow.keras.preprocessing import image
 import numpy as np
 
 # load model
-model = load_model("model150.h5")
+model = load_model("model/data-modeling.h5")
 
 # Mengatur ukuran batch dan dimensi gambar
 batch_size = 32
-img_width, img_height = 150, 150
+img_width, img_height = 224, 224
 
 # Image to predict
 img_to_test = [
     "./dataset-evaluate/test-0.png",
-    "./dataset-evaluate/test-01.jpg",
     "./dataset-evaluate/test-1.png",
     "./dataset-evaluate/test-2.jpg",
     "./dataset-evaluate/test-3.jpg",
     "./dataset-evaluate/test-4.jpg",
+    "./dataset-evaluate/0_normal_laptop (3).png",
 ]
 
 # predicting images
@@ -37,14 +37,12 @@ for img_test in img_to_test:
     classes_value = ""
 
     if classes_x == 0:
-        classes_value = "normal"
+        classes_value = "menyontek-lihat-atas"
     elif classes_x == 1:
-        classes_value = "tengok-kiri-kanan"
+        classes_value = "menyontek-lihat-depan"
     elif classes_x == 2:
-        classes_value = "tengok-depan-belakang"
+        classes_value = "menyontek-menengok"
     elif classes_x == 3:
-        classes_value = "lirik-kiri-kanan"
-    elif classes_x == 4:
-        classes_value = "lihat-atas"
+        classes_value = "normal"
 
     print("Prediksi untuk gambar ini '" + img_test + "' : " + classes_value)
