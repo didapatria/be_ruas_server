@@ -80,6 +80,11 @@ def get_category_name(label):
         return "-"
 
 
+@app.route("/")
+def index():
+    return "This is the Ruas Server API"
+
+
 # Fungsi untuk memproses video
 @app.route("/process-video", methods=["POST"])
 def process_video():
